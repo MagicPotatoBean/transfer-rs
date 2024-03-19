@@ -1,24 +1,31 @@
 use std::{
     collections::hash_map::DefaultHasher,
-    fs::File,
+    fs::{read_dir, File},
     hash::Hasher,
     io::{Read, Write},
     net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpListener, TcpStream},
     os::unix::ffi::OsStrExt,
-    path::{Path, PathBuf},
+    path::Path,
     sync::{Arc, Mutex},
-    thread::{self, Builder, sleep, JoinHandle},
+    thread::{self, sleep, Builder},
     time::Duration,
 };
 
 fn main() {
-    host(TcpListener::bind(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 80))).unwrap());
+    host(TcpListener::bind(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 80))).expect("Failed to bind to port, try running as sudo."));
 }
 fn host(stream: TcpListener) {
+    garbage_collect();
     const MAX_THREADS: usize = 16;
     let thread_count: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
-    println!("Now hosting on {}", stream.local_addr().unwrap());
+    println!("Now hosting on http://{}/", stream.local_addr().map(|ip| ip.to_string())
+    .unwrap_or("Err".to_owned()));
     for client in stream.incoming().flatten() {
+        if let Ok(addr) = client.peer_addr() {
+            println!("Request from {addr}");
+        } else {
+            println!("Request from unknown peer");
+        }
         if let Ok(threads) = thread_count.lock() {
             if threads.lt(&MAX_THREADS) {
                 if thread::Builder::new()
@@ -51,7 +58,8 @@ fn serve_client(mut client: TcpStream) {
         }
     }
     if let Ok(parsed_data) = prse::try_parse!(first_line, "{} {} HTTP{}") {
-        let (method, path, _): (String, String, String) = parsed_data;
+        let (method, path, protocol): (String, String, String) = parsed_data;
+        println!("Client request: {method} {path} HTTP{protocol}");
         match method.as_str() {
             "PUT" => {
                 let mut was_newline = 0;
@@ -79,32 +87,44 @@ fn serve_client(mut client: TcpStream) {
                 let success = put(&path, &remaining_data);
                 if let Ok(my_ip) = client.local_addr() {
                     if let Some(response) = success {
-                        garbage_collect(PathBuf::from(&response)).unwrap();
                         let response = format!("HTTP/1.1 200 Your file should be accessible at \"http://{0}/{1}\" for the next hour, to download the file, run:\r\n$ curl http://{0}/{1} | cat > FILENAME.txt\r\n", my_ip, response.to_string());
-                        client.write_all(response.as_bytes()).unwrap();
+                        let _ = client.write_all(response.as_bytes());
                     }
                 }
             }
             "GET" => {
                 let success = get(&path);
                 if let Some(response) = success {
-                    client.write_all(format!("HTTP/1.1 200 Ok\r\nContent-Length: {}\r\n\r\n", response.len()).as_bytes()).unwrap();
-                    client.write_all(&response).unwrap();
+                    send_data(&response, &mut client, ResponseCode::Ok);
                 } else {
-                    client.write_all(format!("HTTP/1.1 409 Failed to get file at {path}\r\n").as_bytes()).unwrap();
+                    let response = format!("HTTP/1.1 404 File \"{path}\" not found\r\n");
+                    send_data(
+                        &response.as_bytes(),
+                        &mut client,
+                        ResponseCode::FileNotFound,
+                    )
                 }
             }
             "DELETE" => {
                 let response = if delete(&path) {
-                    format!("HTTP/1.1 200 The file hosted at {} has been removed\r\n\r\n", {path})
+                    format!(
+                        "HTTP/1.1 200 The file hosted at {} has been removed\r\n\r\n",
+                        { path }
+                    )
                 } else {
-                    format!("HTTP/1.1 409 The file hosted at {} could not be removed\r\n\r\n", {path})
+                    format!(
+                        "HTTP/1.1 404 The file hosted at {} could not be removed\r\n\r\n",
+                        { path }
+                    )
                 };
-                client.write_all(response.as_bytes()).unwrap();
+                    let _ = client.write_all(response.as_bytes());
             }
             _ => return,
         }
+    } else {
+        println!("Invalid request: {first_line}");
     }
+    let _ = client.shutdown(std::net::Shutdown::Both);
 }
 fn put<T: AsRef<std::path::Path>>(path: T, data: &[u8]) -> Option<String> {
     let name = {
@@ -116,20 +136,23 @@ fn put<T: AsRef<std::path::Path>>(path: T, data: &[u8]) -> Option<String> {
         let val = hasher.finish();
         format!("{val:0x}")
     };
-        let mut file_name = Path::new("files/").to_path_buf();
-        file_name.push(name.clone());
-        if !file_name.exists() {
-            File::create(file_name).unwrap().write_all(&data).ok()?;
-            return Some(name);
-        }
+    let mut file_name = Path::new("files/").to_path_buf();
+    file_name.push(name.clone());
+    if !file_name.exists() {
+        File::create(file_name).ok()?.write_all(&data).ok()?;
+        return Some(name);
+    }
     None
 }
 fn get<T: AsRef<std::path::Path>>(path: T) -> Option<Vec<u8>> {
     let mut file_name = Path::new("files/").to_path_buf();
-        file_name.push(path.as_ref().file_name().unwrap());
+    file_name.push(path.as_ref().file_name()?);
     if file_name.is_file() {
         let mut file_data = Vec::new();
-        File::open(file_name).unwrap().read_to_end(&mut file_data).ok()?;
+        File::open(file_name)
+            .ok()?
+            .read_to_end(&mut file_data)
+            .ok()?;
         Some(file_data)
     } else {
         None
@@ -137,16 +160,46 @@ fn get<T: AsRef<std::path::Path>>(path: T) -> Option<Vec<u8>> {
 }
 fn delete<T: AsRef<std::path::Path>>(path: T) -> bool {
     let mut file_name = Path::new("files/").to_path_buf();
-    file_name.push(path.as_ref().file_name().unwrap());
+    if let Some(name) = path.as_ref().file_name() {
+        file_name.push(name);
+    }
     std::fs::remove_file(file_name).is_ok()
 }
-fn garbage_collect(path: PathBuf) -> Option<JoinHandle<()>> where {
-    Builder::new().name(path.to_str()?.to_string()).spawn(move || {
-        sleep(Duration::from_secs(60*60));
-        if !delete(&path) {
-            println!("Deleted {path:?}");
-        } else {
-            println!("Failed to delete {path:?}");
-        }
-    }).ok()
+fn garbage_collect() {
+    Builder::new()
+        .name("Garbage collector".to_string())
+        .spawn(move || {
+            loop {
+                for file in read_dir("files").expect("Garbage collector failed to start, aborting.").into_iter() {
+                    if let Ok(file) = file {
+                        if let Ok(Ok(Ok(secs_elapsed))) = file.metadata().map(|meta| {
+                            meta.created()
+                                .map(|date| date.elapsed().map(|elapsed| elapsed.as_secs()))
+                        }) {
+                            if secs_elapsed > 3600 {
+                                match  std::fs::remove_file(file.path()) {
+                                    Ok(_) => println!("Deleted {}", file.path().display()),
+                                    Err(val) => println!("Failed to delete {}: {val}", file.path().display()),
+                                }
+                            }
+                        }
+                    }
+                }
+                sleep(Duration::from_secs(5));
+            }
+        }).expect("Garbage collector failed to start, aborting.");
+}
+fn send_data(contents: &[u8], stream: &mut TcpStream, response_code: ResponseCode) {
+    let status_line = match response_code {
+        ResponseCode::Ok => "HTTP/1.1 200 OK",
+        ResponseCode::FileNotFound => "HTTP/1.1 404 File not found",
+    };
+    let length = contents.len();
+    let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n");
+    let _ = stream.write_all(response.as_bytes());
+    let _ = stream.write_all(&contents);
+}
+enum ResponseCode {
+    Ok,
+    FileNotFound,
 }
