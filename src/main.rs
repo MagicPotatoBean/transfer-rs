@@ -87,22 +87,32 @@ fn serve_client(mut client: TcpStream) {
                 let success = put(&path, &remaining_data);
                 if let Ok(my_ip) = client.local_addr() {
                     if let Some(response) = success {
-                        let response = format!("HTTP/1.1 200 Your file should be accessible at \"http://{0}/{1}\" for the next hour, to download the file, run:\r\n$ curl http://{0}/{1} | cat > FILENAME.txt\r\n", my_ip, response.to_string());
+                        let response = format!("HTTP/1.1 200 Your file should be accessible at \"http://{0}/{1}\" for the next hour, to download the file, run:\r\n$ curl http://{0}/{1} --output filename.txt\r\n", my_ip, response.to_string());
                         let _ = client.write_all(response.as_bytes());
                     }
                 }
             }
             "GET" => {
-                let success = get(&path);
-                if let Some(response) = success {
-                    send_data(&response, &mut client, ResponseCode::Ok);
+                if path == "/" {
+                    if let Ok(page_data) = std::fs::read("src/index.html") {
+                        send_data(&page_data, &mut client, ResponseCode::Ok);
+                    }
+                } else if path == "/styles.css" {
+                    if let Ok(page_data) = std::fs::read("src/styles.css") {
+                        send_data(&page_data, &mut client, ResponseCode::Ok);
+                    }
                 } else {
-                    let response = format!("HTTP/1.1 404 File \"{path}\" not found\r\n");
-                    send_data(
-                        &response.as_bytes(),
-                        &mut client,
-                        ResponseCode::FileNotFound,
-                    )
+                    let success = get(&path);
+                    if let Some(response) = success {
+                        send_data(&response, &mut client, ResponseCode::Ok);
+                    } else {
+                        let response = format!("HTTP/1.1 404 File \"{path}\" not found\r\n");
+                        send_data(
+                            &response.as_bytes(),
+                            &mut client,
+                            ResponseCode::FileNotFound,
+                        )
+                    }
                 }
             }
             "DELETE" => {
