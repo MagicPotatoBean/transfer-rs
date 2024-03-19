@@ -4,12 +4,13 @@ use std::{
     hash::Hasher,
     io::{Read, Write},
     net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpListener, TcpStream},
-    os::unix::ffi::OsStrExt,
-    path::Path,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
     thread::{self, sleep, Builder},
     time::Duration,
 };
+#[cfg(target_os="linux")]
+use std::os::unix::ffi::OsStrExt;
 
 fn main() {
     host(TcpListener::bind(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 80))).expect("Failed to bind to port, try running as sudo."));
@@ -136,6 +137,26 @@ fn serve_client(mut client: TcpStream) {
     }
     let _ = client.shutdown(std::net::Shutdown::Both);
 }
+#[cfg(target_os="windows")]
+fn put<T: AsRef<std::path::Path>>(path: T, data: &[u8]) -> Option<String> {
+    let name = {
+        let mut hasher = DefaultHasher::new();
+        let _ = hasher.write(path.as_ref().as_os_str().as_encoded_bytes());
+        let _ = hasher.write(&data);
+        let rand: usize = rand::Rng::gen(&mut rand::thread_rng());
+        let _ = hasher.write(&rand.to_be_bytes());
+        let val = hasher.finish();
+        format!("{val:0x}")
+    };
+        let mut file_name = Path::new("files/").to_path_buf();
+        file_name.push(name.clone());
+        if !file_name.exists() {
+            File::create(file_name).unwrap().write_all(&data).ok()?;
+            return Some(name);
+        }
+    None
+}
+#[cfg(target_os="linux")]
 fn put<T: AsRef<std::path::Path>>(path: T, data: &[u8]) -> Option<String> {
     let name = {
         let mut hasher = DefaultHasher::new();
