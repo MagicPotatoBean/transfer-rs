@@ -1,39 +1,107 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <link rel="stylesheet" href="styles.css">
-        <title>Transfer-rs</title>
-    </head>
-    <body>
-        <div id="page"> <!--Opening page div-->
-            <h1 id="header">Transfer-rs</h1>
-            <h2>An open source file sharing solution</h2>
-            <div id="left-column">
-                <h2>Uploading</h2>
-                <p>To upload a file to transfer-rs, type:<br>
-                    <code class="code-block">$ curl -v --upload-file <span class="replace-text">file.txt</span> http://<span class="replace-text">server.com</span></code>
-                    replacing <code><span class="replace-text">file.txt</span></code> with your file, and <code><span class="replace-text">server.com</span></code> with the server you are using
-                </p>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <title>Transfer-rs</title>
+    <script>
+        function doupload() {
+            let data = document.getElementById("file").files[0];
+            let entry = document.getElementById("file").files[0];
+            let response = fetch('uploads/' + encodeURIComponent(entry.name), { method: 'PUT', body: data });
+            response.then((response) => {
+                alert(response.statusText)
+            })
+            // location.reload();
+        };
+        function replace_urls() {
+            let elements = document.querySelectorAll(".url");
+            elements.forEach((element, key) => {
+                element.innerHTML = "" + window.location.href;
+            })
+
+            document.getElementById('gui-download-guide').innerHTML = "Enter the file ID below (the letters that came after " + window.location.href + ").";
+        }
+        function download_id(id) {
+            fetch("/" + id)
+  .then(resp => resp.status === 200 ? resp.blob() : Promise.reject("Something went wrong"))
+  .then(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = id;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    alert('your file has downloaded!'); 
+  })
+  .catch(() => alert("Something went wrong, this is likely because the file doesn't exist"));
+        }
+        function delete_id(id) {
+            fetch("/" + id,  {
+                method: 'DELETE'
+            }).then((resp) => {
+                alert("File '" + id + "' Deleted.")
+            })
+        }
+    </script>
+</head>
+
+<body onload="replace_urls()">
+    <div id="page"> <!--Opening page div-->
+        <h1 id="header">Transfer-rs</h1>
+        <h2 id="subheader">An open source file sharing solution</h2>
+        <div class="info-box">
+            <h2>Upload</h2>
+            <!-- <h3>GUI</h3>
+            <input type="file" id="file" />
+            <button onclick="doupload()">Upload</button> -->
+            <!-- <h3>CLI</h3> -->
+            <div class="sub-info-box">
+                <h4>Bash</h4>
+                <code>$ curl -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
+                <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u  class="url">http://server.com</u></b> with your
+                    server.</p>
             </div>
-            <div id="right-column">
-                <h2>The construction schedule</h2>
-                <div class="list">
-                    <ol>
-                        <li>The first floor was completed on the 1st April 1888</li>
-                        <li>The second floor was completed on the 14th August 1888</li>
-                        <li>The top section was completed on the 31st March 1889</li>
-                    </ol>
-                </div>
-                <h2>Facts and figures</h2>
-                <div class="list">
-                    <ul>
-                        <li>The tower has 1665 steps</li>
-                        <li>2.5 million rivets were used</li>
-                        <li>7,300 tonnes of iron</li>
-                        <li>60 tonnes of paint</li>
-                    </ul>
-                </div>
+            <div class="sub-info-box">
+                <h4>GUI</h4>
+                <p>Click 'browse' to select a file, then click 'upload' to upload it.</p>
+                <input type="file" id="file" />
+                <button onclick="doupload()">Upload</button>
             </div>
-        </div> <!--Closing page div-->
-    </body>
+        </div>  
+        <div class="info-box">
+            <h2>Download</h2>
+            <div class="sub-info-box">
+                <h4>Bash</h4>
+                <code>$ curl -v <b><u  class="url">http://server.com</u></b> --output <b><u>outfile.txt</u></b></code>
+                <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u  class="url">http://server.com</u></b> with your
+                    server.</p>
+            </div>
+            <div class="sub-info-box">
+                <h4>GUI</h4>
+                <p id="gui-download-guide">Enter the file ID below (the letters that came after)</p>
+                <textarea id="file_id_1" class="file_id_box" cols="16" rows="1"></textarea>
+                <button onclick="download_id(document.getElementById('file_id_1').value)">Download</button>
+            </div>
+        </div>
+        <div class="info-box">
+            <h2>Delete</h2>
+            <div class="sub-info-box">
+                <h4>Bash</h4>
+                <code>$ curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
+                <p>Replace <b><u  class="url">http://server.com</u><u>image-id</u></b> with your
+                    file's url</p>
+            </div>
+            <div class="sub-info-box">
+                <h4>GUI</h4>
+                <p id="gui-download-guide">Enter the file ID below (the letters that came after)</p>
+                <textarea id="file_id_2" class="file_id_box" cols="16" rows="1"></textarea>
+                <button onclick="delete_id(document.getElementById('file_id_2').value)">Delete</button>
+            </div>
+        </div>
+    </div> <!--Closing page div-->
+</body>
+
 </html>

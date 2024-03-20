@@ -4,7 +4,7 @@ use std::{
     hash::Hasher,
     io::{Read, Write},
     net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpListener, TcpStream},
-    path::{Path, PathBuf},
+    path::Path,
     sync::{Arc, Mutex},
     thread::{self, sleep, Builder},
     time::Duration,
@@ -88,7 +88,7 @@ fn serve_client(mut client: TcpStream) {
                 let success = put(&path, &remaining_data);
                 if let Ok(my_ip) = client.local_addr() {
                     if let Some(response) = success {
-                        let response = format!("HTTP/1.1 200 Your file should be accessible at \"http://{0}/{1}\" for the next hour, to download the file, run:\r\n$ curl http://{0}/{1} --output filename.txt\r\n", my_ip, response.to_string());
+                        let response = format!("HTTP/1.1 200 Your file should be accessible at: \"http://{0}/{1}\" For the next hour.\r\n To download the file, run:\r\n$ curl http://{0}/{1} --output filename.txt\r\n", my_ip, response.to_string());
                         let _ = client.write_all(response.as_bytes());
                     }
                 }
@@ -100,6 +100,10 @@ fn serve_client(mut client: TcpStream) {
                     }
                 } else if path == "/styles.css" {
                     if let Ok(page_data) = std::fs::read("src/styles.css") {
+                        send_data(&page_data, &mut client, ResponseCode::Ok);
+                    }
+                } else if path == "/favicon.ico" {
+                    if let Ok(page_data) = std::fs::read("src/cuddlyferris.ico") {
                         send_data(&page_data, &mut client, ResponseCode::Ok);
                     }
                 } else {

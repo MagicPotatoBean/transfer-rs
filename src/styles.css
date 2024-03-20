@@ -16,7 +16,11 @@ h1 {
     font-size: 36px;
 }
 
-h2 {
+#subheader {
+    color: #00a7ba;
+}
+
+h2  {
     font-size: 30px;
 }
 
@@ -24,13 +28,13 @@ h2 {
     max-width: 800px;
     margin: 20px auto;
     padding: 30px;
-    background-color: #c4804f;
+    background-color: #bdffee;
     overflow: hidden;
 }
 
 #header {
     padding: 5px;
-    background-color: #754925;
+    background-color: #00e5ff;
     text-align: center;
 }
 
@@ -38,25 +42,18 @@ img {
     border: double 10px white;
 }
 
-.list {
-    color: #333300;
-}
-
-#right-column {
-    float: right;
-    width: 350px;
+.info-box {
+    /* width: 80%; */
     text-align: center;
-    background-color: #ff933b;
+    background-color: #dbfeff;
+    padding: 20px;
+    margin: 20px;
+}
+.sub-info-box {
+    background-color: white;
+    padding: 20px;
 }
 
-#left-column {
-    float: left;
-    width: 350px;
-    text-align: center;
-    background-color: #ff933b;
-}
-
-#right-column h2 {
-    font-size: 1.2rem;
-    font-weight: bold;
+.file_id_box {
+    resize: none;
 }
