@@ -24,22 +24,22 @@
         }
         function download_id(id) {
             fetch("/" + id)
-  .then(resp => resp.status === 200 ? resp.blob() : Promise.reject("Something went wrong"))
-  .then(blob => {
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = id;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    alert('your file has downloaded!'); 
-  })
-  .catch(() => alert("Something went wrong, this is likely because the file doesn't exist"));
+                .then(resp => resp.status === 200 ? resp.blob() : Promise.reject("Something went wrong"))
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = id;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    alert('your file has downloaded!');
+                })
+                .catch(() => alert("Something went wrong, this is likely because the file doesn't exist"));
         }
         function delete_id(id) {
-            fetch("/" + id,  {
+            fetch("/" + id, {
                 method: 'DELETE'
             }).then((resp) => {
                 alert("File '" + id + "' Deleted.")
@@ -61,8 +61,9 @@
             <div class="sub-info-box">
                 <h4>Bash</h4>
                 <code>$ curl -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
-                <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u  class="url">http://server.com</u></b> with your
-                    server.</p>
+                <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b> with
+                    your
+                    server. Then, curl should display the URL to your file in its response.</p>
             </div>
             <div class="sub-info-box">
                 <h4>GUI</h4>
@@ -70,13 +71,14 @@
                 <input type="file" id="file" />
                 <button onclick="doupload()">Upload</button>
             </div>
-        </div>  
+        </div>
         <div class="info-box">
             <h2>Download</h2>
             <div class="sub-info-box">
                 <h4>Bash</h4>
                 <code>$ curl -v <b><u  class="url">http://server.com</u></b> --output <b><u>outfile.txt</u></b></code>
-                <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u  class="url">http://server.com</u></b> with your
+                <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b>
+                    with your
                     server.</p>
             </div>
             <div class="sub-info-box">
@@ -91,12 +93,12 @@
             <div class="sub-info-box">
                 <h4>Bash</h4>
                 <code>$ curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
-                <p>Replace <b><u  class="url">http://server.com</u><u>image-id</u></b> with your
-                    file's url</p>
+                <p>Replace <b><u class="url">http://server.com</u><u>image-id</u></b> with the url provided to you by
+                    the web UI/curl.</p>
             </div>
             <div class="sub-info-box">
                 <h4>GUI</h4>
-                <p id="gui-download-guide">Enter the file ID below (the letters that came after)</p>
+                <p id="gui-download-guide">Enter the file ID below (the letters that came after).</p>
                 <textarea id="file_id_2" class="file_id_box" cols="16" rows="1"></textarea>
                 <button onclick="delete_id(document.getElementById('file_id_2').value)">Delete</button>
             </div>
