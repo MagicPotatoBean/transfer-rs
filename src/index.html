@@ -48,7 +48,7 @@
 
 <body onload="replace_urls()">
     <div>
-        <div id="page"> <!--Opening page div-->
+        <div id="page" class="row"> <!--Opening page div-->
             <h1 id="header">Transfer-rs</h1>
             <h2 id="subheader">An open source file sharing solution</h2>
             <div class="info-box">
@@ -56,6 +56,26 @@
                 <div class="sub-info-box">
                     <h4>Bash</h4>
                     <code>$ curl -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
+                    <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b>
+                        with
+                        your
+                        server, or leave it as-is to use this server. Then, curl should display the URL to your file in
+                        its
+                        response.</p>
+                </div>
+                <div class="sub-info-box">
+                    <h4>CMD (Not powershell)</h4>
+                    <code>> curl -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
+                    <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b>
+                        with
+                        your
+                        server, or leave it as-is to use this server. Then, curl should display the URL to your file in
+                        its
+                        response.</p>
+                </div>
+                <div class="sub-info-box">
+                    <h4>Powershell</h4>
+                    <code>> curl.exe -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
                     <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b>
                         with
                         your
@@ -82,6 +102,22 @@
                         curl/the website.</p>
                 </div>
                 <div class="sub-info-box">
+                    <h4>CMD (Not powershell)</h4>
+                    <code>$ curl -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
+                    <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u
+                                class="url">http://server.com</u><u>image-id</u></b>
+                        with the url provided to you by
+                        curl/the website.</p>
+                </div>
+                <div class="sub-info-box">
+                    <h4>Powershell</h4>
+                        <code>$ curl.exe -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
+                        <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u
+                                    class="url">http://server.com</u><u>image-id</u></b>
+                            with the url provided to you by
+                            curl/the website.</p>
+                </div>
+                <div class="sub-info-box">
                     <h4>GUI</h4>
                     <p id="gui-download-guide">Enter the file ID below (the letters that came after the url)</p>
                     <p style="display:inline" class="url">http://server.com/</p><textarea id="file_id_1" class="file_id_box" cols="16" rows="1"></textarea>
@@ -94,6 +130,20 @@
                 <div class="sub-info-box">
                     <h4>Bash</h4>
                     <code>$ curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
+                    <p>Replace <b><u class="url">http://server.com</u><u>image-id</u></b> with the url provided to you
+                        by
+                        curl/the website.</p>
+                </div>
+                <div class="sub-info-box">
+                    <h4>CMD (Not powershell)</h4>
+                    <code>$ curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
+                    <p>Replace <b><u class="url">http://server.com</u><u>image-id</u></b> with the url provided to you
+                        by
+                        curl/the website.</p>
+                </div>
+                <div class="sub-info-box">
+                    <h4>Powershell</h4>
+                    <code>> curl.exe -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
                     <p>Replace <b><u class="url">http://server.com</u><u>image-id</u></b> with the url provided to you
                         by
                         curl/the website.</p>
