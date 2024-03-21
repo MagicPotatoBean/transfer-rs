@@ -48,7 +48,7 @@
 
 <body onload="replace_urls()">
     <div>
-        <div id="page" class="row"> <!--Opening page div-->
+        <div id="page"> <!--Opening page div-->
             <h1 id="header">Transfer-rs</h1>
             <h2 id="subheader">An open source file sharing solution</h2>
             <div class="info-box">
@@ -103,7 +103,7 @@
                 </div>
                 <div class="sub-info-box">
                     <h4>CMD (Not powershell)</h4>
-                    <code>$ curl -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
+                    <code>> curl -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
                     <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u
                                 class="url">http://server.com</u><u>image-id</u></b>
                         with the url provided to you by
@@ -111,7 +111,7 @@
                 </div>
                 <div class="sub-info-box">
                     <h4>Powershell</h4>
-                        <code>$ curl.exe -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
+                        <code>> curl.exe -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
                         <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u
                                     class="url">http://server.com</u><u>image-id</u></b>
                             with the url provided to you by
@@ -136,7 +136,7 @@
                 </div>
                 <div class="sub-info-box">
                     <h4>CMD (Not powershell)</h4>
-                    <code>$ curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
+                    <code>> curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
                     <p>Replace <b><u class="url">http://server.com</u><u>image-id</u></b> with the url provided to you
                         by
                         curl/the website.</p>
