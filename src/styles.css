@@ -7,13 +7,14 @@ body {
     font-family: Arial, Helvetica, "sans-serif";
     font-size: 18px;
     text-align: center;
+    
 }
 
 h1 {
     margin: 0px;
     padding: 0px;
     color: white;
-    font-size: 36px;
+    font-size: 50px;
 }
 
 #subheader {
@@ -21,6 +22,9 @@ h1 {
 }
 
 h2  {
+    font-size: 35px;
+}
+h4 {
     font-size: 30px;
 }
 
@@ -30,12 +34,20 @@ h2  {
     padding: 30px;
     background-color: #bdffee;
     overflow: hidden;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
 #header {
     padding: 5px;
     background-color: #00e5ff;
     text-align: center;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
 img {
@@ -48,10 +60,19 @@ img {
     background-color: #dbfeff;
     padding: 20px;
     margin: 20px;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 .sub-info-box {
     background-color: white;
     padding: 20px;
+    margin: 20px;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
 .file_id_box {
