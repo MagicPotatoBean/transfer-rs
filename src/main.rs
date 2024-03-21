@@ -1,3 +1,5 @@
+#[cfg(target_os = "linux")]
+use std::os::unix::ffi::OsStrExt;
 use std::{
     collections::hash_map::DefaultHasher,
     fs::{read_dir, File},
@@ -9,18 +11,24 @@ use std::{
     thread::{self, sleep, Builder},
     time::Duration,
 };
-#[cfg(target_os="linux")]
-use std::os::unix::ffi::OsStrExt;
 
 fn main() {
-    host(TcpListener::bind(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 80))).expect("Failed to bind to port, try running as sudo."));
+    host(
+        TcpListener::bind(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 80)))
+            .expect("Failed to bind to port, try running as sudo."),
+    );
 }
 fn host(stream: TcpListener) {
     garbage_collect();
     const MAX_THREADS: usize = 16;
     let thread_count: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
-    println!("Now hosting on http://{}/", stream.local_addr().map(|ip| ip.to_string())
-    .unwrap_or("Err".to_owned()));
+    println!(
+        "Now hosting on http://{}/",
+        stream
+            .local_addr()
+            .map(|ip| ip.to_string())
+            .unwrap_or("Err".to_owned())
+    );
     for client in stream.incoming().flatten() {
         if let Ok(addr) = client.peer_addr() {
             println!("Request from {addr}");
@@ -58,8 +66,6 @@ fn serve_client(mut client: TcpStream) {
             return;
         }
     }
-    let _ = client.set_read_timeout(Some(Duration::from_millis(300)));
-    let _ = client.read_to_end(&mut Vec::new());
     if let Ok(parsed_data) = prse::try_parse!(first_line, "{} {} HTTP{}") {
         let (method, path, protocol): (String, String, String) = parsed_data;
         println!("Client request: {method} {path} HTTP{protocol}");
@@ -96,6 +102,8 @@ fn serve_client(mut client: TcpStream) {
                 }
             }
             "GET" => {
+                let _ = client.set_read_timeout(Some(Duration::from_millis(300)));
+                let _ = client.read_to_end(&mut Vec::new());
                 if path == "/" {
                     if let Ok(page_data) = std::fs::read("src/index.html") {
                         send_data(&page_data, &mut client, ResponseCode::Ok);
@@ -124,6 +132,8 @@ fn serve_client(mut client: TcpStream) {
                 }
             }
             "DELETE" => {
+                let _ = client.set_read_timeout(Some(Duration::from_millis(300)));
+                let _ = client.read_to_end(&mut Vec::new());
                 let response = if delete(&path) {
                     format!(
                         "HTTP/1.1 200 The file hosted at {} has been removed\r\n\r\n",
@@ -135,7 +145,7 @@ fn serve_client(mut client: TcpStream) {
                         { path }
                     )
                 };
-                    let _ = client.write_all(response.as_bytes());
+                let _ = client.write_all(response.as_bytes());
             }
             _ => return,
         }
@@ -144,7 +154,7 @@ fn serve_client(mut client: TcpStream) {
     }
     let _ = client.shutdown(std::net::Shutdown::Both);
 }
-#[cfg(target_os="windows")]
+#[cfg(target_os = "windows")]
 fn put<T: AsRef<std::path::Path>>(path: T, data: &[u8]) -> Option<String> {
     let name = {
         let mut hasher = DefaultHasher::new();
@@ -155,15 +165,15 @@ fn put<T: AsRef<std::path::Path>>(path: T, data: &[u8]) -> Option<String> {
         let val = hasher.finish();
         format!("{val:0x}")
     };
-        let mut file_name = Path::new("files/").to_path_buf();
-        file_name.push(name.clone());
-        if !file_name.exists() {
-            File::create(file_name).unwrap().write_all(&data).ok()?;
-            return Some(name);
-        }
+    let mut file_name = Path::new("files/").to_path_buf();
+    file_name.push(name.clone());
+    if !file_name.exists() {
+        File::create(file_name).unwrap().write_all(&data).ok()?;
+        return Some(name);
+    }
     None
 }
-#[cfg(target_os="linux")]
+#[cfg(target_os = "linux")]
 fn put<T: AsRef<std::path::Path>>(path: T, data: &[u8]) -> Option<String> {
     let name = {
         let mut hasher = DefaultHasher::new();
@@ -206,26 +216,30 @@ fn delete<T: AsRef<std::path::Path>>(path: T) -> bool {
 fn garbage_collect() {
     Builder::new()
         .name("Garbage collector".to_string())
-        .spawn(move || {
-            loop {
-                for file in read_dir("files").expect("Garbage collector failed to start, aborting.").into_iter() {
-                    if let Ok(file) = file {
-                        if let Ok(Ok(Ok(secs_elapsed))) = file.metadata().map(|meta| {
-                            meta.created()
-                                .map(|date| date.elapsed().map(|elapsed| elapsed.as_secs()))
-                        }) {
-                            if secs_elapsed > 3600 {
-                                match  std::fs::remove_file(file.path()) {
-                                    Ok(_) => println!("Deleted {}", file.path().display()),
-                                    Err(val) => println!("Failed to delete {}: {val}", file.path().display()),
+        .spawn(move || loop {
+            for file in read_dir("files")
+                .expect("Garbage collector failed to start, aborting.")
+                .into_iter()
+            {
+                if let Ok(file) = file {
+                    if let Ok(Ok(Ok(secs_elapsed))) = file.metadata().map(|meta| {
+                        meta.created()
+                            .map(|date| date.elapsed().map(|elapsed| elapsed.as_secs()))
+                    }) {
+                        if secs_elapsed > 3600 {
+                            match std::fs::remove_file(file.path()) {
+                                Ok(_) => println!("Deleted {}", file.path().display()),
+                                Err(val) => {
+                                    println!("Failed to delete {}: {val}", file.path().display())
                                 }
                             }
                         }
                     }
                 }
-                sleep(Duration::from_secs(5));
             }
-        }).expect("Garbage collector failed to start, aborting.");
+            sleep(Duration::from_secs(5));
+        })
+        .expect("Garbage collector failed to start, aborting.");
 }
 fn send_data(contents: &[u8], stream: &mut TcpStream, response_code: ResponseCode) {
     let status_line = match response_code {
