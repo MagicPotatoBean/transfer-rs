@@ -15,11 +15,9 @@
             // location.reload();
         };
         function replace_urls() {
-            let elements = document.querySelectorAll(".url");
-            elements.forEach((element, key) => {
+            document.querySelectorAll(".url").forEach((element, key) => {
                 element.innerHTML = "" + window.location.href;
             })
-
             document.getElementById('gui-download-guide').innerHTML = "Enter the file ID below (the letters that came after " + window.location.href + ").";
         }
         function download_id(id) {
@@ -85,8 +83,8 @@
                 </div>
                 <div class="sub-info-box">
                     <h4>GUI</h4>
-                    <p id="gui-download-guide">Enter the file ID below (the letters that came after)</p>
-                    <textarea id="file_id_1" class="file_id_box" cols="16" rows="1"></textarea>
+                    <p id="gui-download-guide">Enter the file ID below (the letters that came after the url)</p>
+                    <p style="display:inline" class="url">http://server.com/</p><textarea id="file_id_1" class="file_id_box" cols="16" rows="1"></textarea>
                     <button onclick="download_id(document.getElementById('file_id_1').value)">Download</button>
                     <p id="download-alert"></p>
                 </div>
@@ -102,8 +100,8 @@
                 </div>
                 <div class="sub-info-box">
                     <h4>GUI</h4>
-                    <p id="gui-download-guide">Enter the file ID below (the letters that came after).</p>
-                    <textarea id="file_id_2" class="file_id_box" cols="16" rows="1"></textarea>
+                    <p id="gui-download-guide">Enter the file ID below (the letters that came after the url).</p>
+                    <p style="display:inline" class="url">http://server.com/</p><textarea id="file_id_2" class="file_id_box" cols="16" rows="1"></textarea>
                     <button onclick="delete_id(document.getElementById('file_id_2').value)">Delete</button>
                     <p id="delete-alert"></p>
                 </div>
