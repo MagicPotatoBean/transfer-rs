@@ -8,9 +8,9 @@
         function doupload() {
             let data = document.getElementById("file").files[0];
             let entry = document.getElementById("file").files[0];
-            let response = fetch('uploads/' + encodeURIComponent(entry.name), { method: 'PUT', body: data });
+            let response = fetch('/' + encodeURIComponent(entry.name), { method: 'PUT', body: data });
             response.then((response) => {
-                alert(response.statusText)
+                document.getElementById("link_out").innerHTML = response.statusText
             })
             // location.reload();
         };
@@ -24,7 +24,7 @@
         }
         function download_id(id) {
             fetch("/" + id)
-                .then(resp => resp.status === 200 ? resp.blob() : Promise.reject("Something went wrong"))
+                .then(resp => resp.status === 200 ? resp.blob() : Promise.reject("Response was not '200 OK'"))
                 .then(blob => {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -34,7 +34,7 @@
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
-                    alert('your file has downloaded!');
+                    document.getElementById("download-alert").innerHTML = "Successfully downloaded file '" + id + '"'
                 })
                 .catch(() => alert("Something went wrong, this is likely because the file doesn't exist"));
         }
@@ -42,68 +42,74 @@
             fetch("/" + id, {
                 method: 'DELETE'
             }).then((resp) => {
-                alert("File '" + id + "' Deleted.")
+                document.getElementById("delete-alert").innerHTML = "Successfully deleted file '" + id + '"'
             })
         }
     </script>
 </head>
 
 <body onload="replace_urls()">
-    <div id="page"> <!--Opening page div-->
-        <h1 id="header">Transfer-rs</h1>
-        <h2 id="subheader">An open source file sharing solution</h2>
-        <div class="info-box">
-            <h2>Upload</h2>
-            <!-- <h3>GUI</h3>
-            <input type="file" id="file" />
-            <button onclick="doupload()">Upload</button> -->
-            <!-- <h3>CLI</h3> -->
-            <div class="sub-info-box">
-                <h4>Bash</h4>
-                <code>$ curl -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
-                <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b> with
-                    your
-                    server. Then, curl should display the URL to your file in its response.</p>
+    <div>
+        <div id="page"> <!--Opening page div-->
+            <h1 id="header">Transfer-rs</h1>
+            <h2 id="subheader">An open source file sharing solution</h2>
+            <div class="info-box">
+                <h2>Upload</h2>
+                <div class="sub-info-box">
+                    <h4>Bash</h4>
+                    <code>$ curl -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
+                    <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b>
+                        with
+                        your
+                        server, or leave it as-is to use this server. Then, curl should display the URL to your file in
+                        its
+                        response.</p>
+                </div>
+                <div class="sub-info-box">
+                    <h4>GUI</h4>
+                    <p>Click 'browse' to select a file, then click 'upload' to upload it.</p>
+                    <input type="file" id="file" />
+                    <button onclick="doupload()">Upload</button>
+                    <p id="link_out"></p>
+                </div>
             </div>
-            <div class="sub-info-box">
-                <h4>GUI</h4>
-                <p>Click 'browse' to select a file, then click 'upload' to upload it.</p>
-                <input type="file" id="file" />
-                <button onclick="doupload()">Upload</button>
+            <div class="info-box">
+                <h2>Download</h2>
+                <div class="sub-info-box">
+                    <h4>Bash</h4>
+                    <code>$ curl -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
+                    <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u
+                                class="url">http://server.com</u><u>image-id</u></b>
+                        with the url provided to you by
+                        curl/the website.</p>
+                </div>
+                <div class="sub-info-box">
+                    <h4>GUI</h4>
+                    <p id="gui-download-guide">Enter the file ID below (the letters that came after)</p>
+                    <textarea id="file_id_1" class="file_id_box" cols="16" rows="1"></textarea>
+                    <button onclick="download_id(document.getElementById('file_id_1').value)">Download</button>
+                    <p id="download-alert"></p>
+                </div>
             </div>
-        </div>
-        <div class="info-box">
-            <h2>Download</h2>
-            <div class="sub-info-box">
-                <h4>Bash</h4>
-                <code>$ curl -v <b><u  class="url">http://server.com</u></b> --output <b><u>outfile.txt</u></b></code>
-                <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b>
-                    with your
-                    server.</p>
+            <div class="info-box">
+                <h2>Delete</h2>
+                <div class="sub-info-box">
+                    <h4>Bash</h4>
+                    <code>$ curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
+                    <p>Replace <b><u class="url">http://server.com</u><u>image-id</u></b> with the url provided to you
+                        by
+                        curl/the website.</p>
+                </div>
+                <div class="sub-info-box">
+                    <h4>GUI</h4>
+                    <p id="gui-download-guide">Enter the file ID below (the letters that came after).</p>
+                    <textarea id="file_id_2" class="file_id_box" cols="16" rows="1"></textarea>
+                    <button onclick="delete_id(document.getElementById('file_id_2').value)">Delete</button>
+                    <p id="delete-alert"></p>
+                </div>
             </div>
-            <div class="sub-info-box">
-                <h4>GUI</h4>
-                <p id="gui-download-guide">Enter the file ID below (the letters that came after)</p>
-                <textarea id="file_id_1" class="file_id_box" cols="16" rows="1"></textarea>
-                <button onclick="download_id(document.getElementById('file_id_1').value)">Download</button>
-            </div>
-        </div>
-        <div class="info-box">
-            <h2>Delete</h2>
-            <div class="sub-info-box">
-                <h4>Bash</h4>
-                <code>$ curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
-                <p>Replace <b><u class="url">http://server.com</u><u>image-id</u></b> with the url provided to you by
-                    the web UI/curl.</p>
-            </div>
-            <div class="sub-info-box">
-                <h4>GUI</h4>
-                <p id="gui-download-guide">Enter the file ID below (the letters that came after).</p>
-                <textarea id="file_id_2" class="file_id_box" cols="16" rows="1"></textarea>
-                <button onclick="delete_id(document.getElementById('file_id_2').value)">Delete</button>
-            </div>
-        </div>
-    </div> <!--Closing page div-->
+        </div> <!--Closing page div-->
+    </div>
 </body>
 
 </html>
