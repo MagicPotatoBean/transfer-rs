@@ -233,7 +233,6 @@ fn send_data(contents: &[u8], stream: &mut TcpStream, response_code: ResponseCod
         ResponseCode::FileNotFound => "HTTP/1.1 404 File not found",
     };
     let length = contents.len();
-    println!("len: {}", contents.len());
     let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n");
     let _ = stream.write_all(response.as_bytes());
     let _ = stream.write_all(&contents);
