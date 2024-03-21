@@ -58,6 +58,8 @@ fn serve_client(mut client: TcpStream) {
             return;
         }
     }
+    let _ = client.set_read_timeout(Some(Duration::from_millis(300)));
+    let _ = client.read_to_end(&mut Vec::new());
     if let Ok(parsed_data) = prse::try_parse!(first_line, "{} {} HTTP{}") {
         let (method, path, protocol): (String, String, String) = parsed_data;
         println!("Client request: {method} {path} HTTP{protocol}");
@@ -82,8 +84,8 @@ fn serve_client(mut client: TcpStream) {
                     }
                 }
                 let mut remaining_data = Vec::new();
-                let _ = client.set_nonblocking(true);
-                let _ = client.set_read_timeout(Some(Duration::from_secs(3)));
+                // let _ = client.set_nonblocking(true);
+                let _ = client.set_read_timeout(Some(Duration::from_millis(300)));
                 let _ = client.read_to_end(&mut remaining_data);
                 let success = put(&path, &remaining_data);
                 if let Ok(my_ip) = client.local_addr() {
@@ -110,13 +112,14 @@ fn serve_client(mut client: TcpStream) {
                     let success = get(&path);
                     if let Some(response) = success {
                         send_data(&response, &mut client, ResponseCode::Ok);
+                        // println!("Provided {path} successfully: \"{response:#?}\"");
                     } else {
                         let response = format!("HTTP/1.1 404 File \"{path}\" not found\r\n");
                         send_data(
                             &response.as_bytes(),
                             &mut client,
                             ResponseCode::FileNotFound,
-                        )
+                        );
                     }
                 }
             }
@@ -230,9 +233,11 @@ fn send_data(contents: &[u8], stream: &mut TcpStream, response_code: ResponseCod
         ResponseCode::FileNotFound => "HTTP/1.1 404 File not found",
     };
     let length = contents.len();
+    println!("len: {}", contents.len());
     let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n");
     let _ = stream.write_all(response.as_bytes());
     let _ = stream.write_all(&contents);
+    let _ = stream.shutdown(std::net::Shutdown::Both);
 }
 enum ResponseCode {
     Ok,
