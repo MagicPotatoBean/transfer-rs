@@ -57,7 +57,7 @@ fn host(stream: TcpListener) {
         }
     }
 }
-fn serve_client(mut client: TcpStream, mut thread_count: Arc<Mutex<usize>>) {
+fn serve_client(mut client: TcpStream, thread_count: Arc<Mutex<usize>>) {
     let mut first_line = String::default();
     loop {
         let mut char = [0u8];
