@@ -9,7 +9,7 @@ use std::{
     path::Path,
     sync::{Arc, Mutex},
     thread::{self, sleep, Builder},
-    time::Duration,
+    time::Duration, ops::{AddAssign, SubAssign},
 };
 
 fn main() {
@@ -35,8 +35,11 @@ fn host(stream: TcpListener) {
         } else {
             println!("Request from unknown peer");
         }
-        if let Ok(threads) = thread_count.lock() {
+        if let Ok(mut threads) = thread_count.lock() {
+            println!("threads: {threads}");
             if threads.lt(&MAX_THREADS) {
+                threads.add_assign(1);
+                let arc_clone = thread_count.clone();
                 if thread::Builder::new()
                     .name(
                         client
@@ -44,16 +47,17 @@ fn host(stream: TcpListener) {
                             .map(|ip| ip.to_string())
                             .unwrap_or("Err".to_owned()),
                     )
-                    .spawn(move || serve_client(client))
+                    .spawn(move || serve_client(client, arc_clone))
                     .is_err()
                 {
+                    threads.sub_assign(1);
                     println!("Encountered an error serving client.");
                 }
             }
         }
     }
 }
-fn serve_client(mut client: TcpStream) {
+fn serve_client(mut client: TcpStream, mut thread_count: Arc<Mutex<usize>>) {
     let mut first_line = String::default();
     loop {
         let mut char = [0u8];
@@ -153,7 +157,15 @@ fn serve_client(mut client: TcpStream) {
         println!("Invalid request: {first_line}");
     }
     let _ = client.shutdown(std::net::Shutdown::Both);
-}
+    loop {
+        if let Ok(mut thread_count) = thread_count.lock() {
+            thread_count.sub_assign(1);
+            break;
+        }
+        println!("Failed to decrement thread count");
+        sleep(Duration::from_secs(5));
+    }
+}   
 #[cfg(target_os = "windows")]
 fn put<T: AsRef<std::path::Path>>(path: T, data: &[u8]) -> Option<String> {
     let name = {
