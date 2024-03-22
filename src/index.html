@@ -16,9 +16,9 @@
         };
         function replace_urls() {
             document.querySelectorAll(".url").forEach((element, key) => {
-                element.innerHTML = "" + window.location.href;
+                element.innerHTML = url();
             })
-            document.getElementById('gui-download-guide').innerHTML = "Enter the file ID below (the letters that came after " + window.location.href + ").";
+            document.getElementById('gui-download-guide').innerHTML = "Enter the file ID below (the letters that came after " + url() + ").";
         }
         function download_id(id) {
             fetch("/" + id)
@@ -43,6 +43,9 @@
                 document.getElementById("delete-alert").innerHTML = "Successfully deleted file '" + id + '"'
             })
         }
+        function url() {
+            return location.protocol + '//' + location.host + "/"
+        }
     </script>
 </head>
 
@@ -51,8 +54,33 @@
         <div id="page"> <!--Opening page div-->
             <h1 id="header">Transfer-rs</h1>
             <h2 id="subheader">An open source file sharing solution</h2>
+
+            <!-- Hyperlinks -->
             <div class="info-box">
-                <h2>Upload</h2>
+                <table style="width: 100%; margin:auto">
+                    <tr>
+                        <td>
+                            <div class="column">
+                                <h1><a href="#upload">Upload</a></h1>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="column">
+                                <h1><a href="#download">Download</a></h1>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="column">
+                                <h1><a href="#delete">Delete</a></h1>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- Hyperlinks end -->
+
+            <div class="info-box">
+                <h2 id="upload">Upload</h2>
                 <div class="sub-info-box">
                     <h4>Bash</h4>
                     <code>$ curl -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
@@ -64,7 +92,7 @@
                         response.</p>
                 </div>
                 <div class="sub-info-box">
-                    <h4>CMD (Not powershell)</h4>
+                    <h4>CMD</h4>
                     <code>> curl -v --upload-file <b><u>infile.txt</u></b> <b><u  class="url">http://server.com</u></b></code>
                     <p>Replace <b><u>infile.txt</u></b> with your file, and <b><u class="url">http://server.com</u></b>
                         with
@@ -92,7 +120,7 @@
                 </div>
             </div>
             <div class="info-box">
-                <h2>Download</h2>
+                <h2 id="download">Download</h2>
                 <div class="sub-info-box">
                     <h4>Bash</h4>
                     <code>$ curl -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
@@ -102,7 +130,7 @@
                         curl/the website.</p>
                 </div>
                 <div class="sub-info-box">
-                    <h4>CMD (Not powershell)</h4>
+                    <h4>CMD</h4>
                     <code>> curl -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
                     <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u
                                 class="url">http://server.com</u><u>image-id</u></b>
@@ -111,22 +139,23 @@
                 </div>
                 <div class="sub-info-box">
                     <h4>Powershell</h4>
-                        <code>> curl.exe -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
-                        <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u
-                                    class="url">http://server.com</u><u>image-id</u></b>
-                            with the url provided to you by
-                            curl/the website.</p>
+                    <code>> curl.exe -v <b><u  class="url">http://server.com</u><u>image-id</u></b> --output <b><u>outfile.txt</u></b></code>
+                    <p>Replace <b><u>outfile.txt</u></b> with your file, and <b><u
+                                class="url">http://server.com</u><u>image-id</u></b>
+                        with the url provided to you by
+                        curl/the website.</p>
                 </div>
                 <div class="sub-info-box">
                     <h4>GUI</h4>
                     <p id="gui-download-guide">Enter the file ID below (the letters that came after the url)</p>
-                    <p style="display:inline" class="url">http://server.com/</p><textarea id="file_id_1" class="file_id_box" cols="16" rows="1"></textarea>
+                    <p style="display:inline" class="url">http://server.com/</p><textarea id="file_id_1"
+                        class="file_id_box" cols="16" rows="1"></textarea>
                     <button onclick="download_id(document.getElementById('file_id_1').value)">Download</button>
                     <p id="download-alert"></p>
                 </div>
             </div>
             <div class="info-box">
-                <h2>Delete</h2>
+                <h2 id="delete">Delete</h2>
                 <div class="sub-info-box">
                     <h4>Bash</h4>
                     <code>$ curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
@@ -135,7 +164,7 @@
                         curl/the website.</p>
                 </div>
                 <div class="sub-info-box">
-                    <h4>CMD (Not powershell)</h4>
+                    <h4>CMD</h4>
                     <code>> curl -X DELETE <b><u class="url">http://server.com</u><u>image-id</u></b></code>
                     <p>Replace <b><u class="url">http://server.com</u><u>image-id</u></b> with the url provided to you
                         by
@@ -151,7 +180,8 @@
                 <div class="sub-info-box">
                     <h4>GUI</h4>
                     <p id="gui-download-guide">Enter the file ID below (the letters that came after the url).</p>
-                    <p style="display:inline" class="url">http://server.com/</p><textarea id="file_id_2" class="file_id_box" cols="16" rows="1"></textarea>
+                    <p style="display:inline" class="url">http://server.com/</p><textarea id="file_id_2"
+                        class="file_id_box" cols="16" rows="1"></textarea>
                     <button onclick="delete_id(document.getElementById('file_id_2').value)">Delete</button>
                     <p id="delete-alert"></p>
                 </div>
